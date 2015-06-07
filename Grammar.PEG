@@ -1,0 +1,27 @@
+// PEG.js grammar
+// see http://pegjs.majda.cz/
+
+{
+  function parserFindL1Prescale(seed) {
+    return tsgFindL1SimplePrescale(options.l1menu, seed, options.column, options.mask)
+  }
+}
+
+start
+  = OrExpression
+
+OrExpression
+  = left:AndExpression " " * "OR" " " * right:OrExpression { return left ? right ? Math.min(left, right) : left : right; }
+  / AndExpression
+
+AndExpression
+  = left:Primary " " * "AND" " " * right:AndExpression { return left * right; }
+  / Primary
+
+Primary
+  = Seed
+  / " " * "(" " " * OrExpression:OrExpression " " * ")" " " * { return OrExpression; }
+
+Seed
+  = chars:[A-Za-z0-9_]+ { return parserFindL1Prescale(chars.join("")); }
+
