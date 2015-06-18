@@ -23,7 +23,7 @@ function tsgFindL1MaskColumn(header) {
 }
 
 function tsgFindL1SeedRow(l1menu, seed) {
-  // look for L1 Algo and Tech triggers by name (alias) 
+  // look for L1 Algo and Tech triggers by name (alias)
   for (i = 0; i < l1menu.length; i++)
     if (l1menu[i][1] == seed)
       return l1menu[i];
@@ -48,9 +48,9 @@ function tsgFindL1SimplePrescale(l1menu, seed, column, mask) {
       return 1;
     else
       // return a parescale of 0 for missing L1 seeds
-      return 0;    
-  } 
-  
+      return 0;
+  }
+
   if (row[mask] == 0)
     return row[column];
   else
@@ -63,13 +63,44 @@ function tsgFindL1ComplexPrescale(l1menu, seeds, column, mask) {
 }
 
 function tsgFindL1Prescale(l1menu, seeds, column, mask) {
-  seeds = String(seeds);
-  
   if (seeds.search(/[ ()]/) == -1)
     return tsgFindL1SimplePrescale(l1menu, seeds, column, mask);
-  else {  
+  else
     return tsgFindL1ComplexPrescale(l1menu, seeds, column, mask);
-  }
+}
+
+var tsgFindL1PrescaleCached = (function() {
+  var cache = Object.create(null);
+
+  return function(l1menu, seeds, column, mask) {
+    if (! (column in cache))
+      cache[column] = Object.create(null);
+
+    if (! (seeds in cache[column]))
+      cache[column][seeds] = tsgFindL1Prescale(l1menu, seeds, column, mask);
+
+    return cache[column][seeds];
+  };
+})();
+
+function tsgFindL1PrescalesForColumn(l1menu, seeds, column, mask) {
+  // find the L1 header and column containing the mask
+  var header = tsgFindL1HeaderRow(l1menu)
+  var mask   = tsgFindL1MaskColumn(header);
+  // find the column containing the prescales
+  var column = tsgFindL1PrescaleColumn(header, column);
+
+  if (seeds.map)
+    return seeds.map(function(seeds){return tsgFindL1PrescaleCached(l1menu, String(seeds), column, mask);});
+  else
+    return tsgFindL1Prescale(l1menu, seeds, column, mask);
+}
+
+
+function transpose(a) {
+  return Object.keys(a[0]).map(
+    function (c) { return a.map(function (r) { return r[c]; }); }
+  );
 }
 
 /**
@@ -80,13 +111,14 @@ function TSG_FIND_L1_PRESCALE(l1menu, column, seeds) {
   if (! l1menu.map)
     throw new Error( "L1 menu is not a range" );
 
-  // find the columns containing the prescale and the mask
+  // find the L1 header and column containing the mask
   var header = tsgFindL1HeaderRow(l1menu)
-  var column = tsgFindL1PrescaleColumn(header, column);
   var mask   = tsgFindL1MaskColumn(header);
 
-  if (seeds.map)
-    return seeds.map(function(seeds){return tsgFindL1Prescale(l1menu, seeds, column, mask);});
+  if (column.map) {
+    // this assumes that the multiple columns as in a *row*, not in a *column*
+    return transpose(column[0].map(function(column){return tsgFindL1PrescalesForColumn(l1menu, seeds, column, mask);}));
+  }
   else
-    return tsgFindL1Prescale(l1menu, seeds, column, mask);
+    return tsgFindL1PrescalesForColumn(l1menu, seeds, column, mask);
 }
