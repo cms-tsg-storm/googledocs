@@ -1,0 +1,84 @@
+<link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
+<!-- The CSS package above applies Google styling to buttons and other elements. -->
+
+<style>
+.sidebar-top {
+  top:     0px;
+  bottom: 86px;
+}
+
+.sidebar-buttons {
+  height: 64px;
+  bottom: 32px;
+}
+
+.branding-text {
+  left: 7px;
+  position: relative;
+  top: 6px;
+}
+
+.col-contain {
+  overflow: hidden;
+}
+
+.logo {
+  vertical-align: middle;
+}
+
+.l1menu {
+  font-family: "Lucida Console", monospace;
+  width:  100%;
+  height:  99%;
+}
+</style>
+
+<div class="sidebar sidebar-top">
+  <textarea class="l1menu" id="l1menu-textarea" wrap="off" readonly>
+  </textarea>
+</div>
+
+<div class="sidebar sidebar-buttons">
+  <input type="button" class="red" value="UPDATE" onclick="updateL1Text()" />
+  <input type="button" value="Close" onclick="google.script.host.close()" />
+</div>
+
+<div class="sidebar bottom">
+  <img alt="CERN logo" class="logo" width="30" height="30" src="https://fwyzard.web.cern.ch/fwyzard/CERN-logo-small.png">
+  <img alt="CMS logo"  class="logo" width="30" height="30" src="https://fwyzard.web.cern.ch/fwyzard/CMS-logo-small.png">
+  <span class="gray branding-text">TSG Tools</span>
+</div>
+
+<script>
+function updateL1Text() {
+  var textarea = document.getElementById("l1menu-textarea");
+  textarea.style.backgroundPosition = "center";
+  textarea.style.backgroundRepeat   = "no-repeat";
+  textarea.style.backgroundImage    = "url('https://fwyzard.web.cern.ch/fwyzard/spinner.gif')";
+  textarea.style.backgroundColor    = "#FFFFFF";
+  textarea.disabled = true;
+  textarea.value = '';
+  google.script.run
+    .withSuccessHandler(onSuccessUpdateL1Text)
+    .withFailureHandler(onFailureUpdateL1Text)
+    .doUpdateL1Text();
+}
+
+function onSuccessUpdateL1Text(text) {
+  var textarea = document.getElementById("l1menu-textarea");
+  textarea.style.backgroundImage = "none";
+  textarea.style.backgroundColor = "#FFFFFF";
+  textarea.disabled = false;
+  textarea.value = text;
+}
+
+function onFailureUpdateL1Text(error) {
+  var textarea = document.getElementById("l1menu-textarea");
+  textarea.style.backgroundImage = "none";
+  textarea.style.backgroundColor = "#FFC0C0";
+  textarea.disabled = false;
+  textarea.value = 'Error: ' + error;
+}
+
+updateL1Text();
+</script>
