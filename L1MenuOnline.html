@@ -4,17 +4,20 @@
 <style>
 .sidebar-top {
   top:     0px;
-  bottom: 32px;
+  bottom: 48px;
 }
 
 .branding-text {
-  left: 7px;
   position: relative;
   top: 6px;
 }
 
-.col-contain {
-  overflow: hidden;
+.right {
+  float: right;
+}
+
+.left {
+  float: left;
 }
 
 .logo {
@@ -34,10 +37,16 @@
 </div>
 
 <div class="sidebar bottom">
-  <img alt="CERN logo" class="logo" width="30" height="30" src="https://raw.githubusercontent.com/cms-tsg-storm/googledocs/master/CERN-logo-small.png">
-  <img alt="CMS logo"  class="logo" width="30" height="30" src="https://raw.githubusercontent.com/cms-tsg-storm/googledocs/master/CMS-logo-small.png">
-  <span class="gray branding-text">TSG Tools v1.1.2</span>
+  <div class="right">
+    <img alt="CERN logo" class="logo" width="30" height="30" src="https://raw.githubusercontent.com/cms-tsg-storm/googledocs/master/CERN-logo-small.png">
+    <img alt="CMS logo"  class="logo" width="30" height="30" src="https://raw.githubusercontent.com/cms-tsg-storm/googledocs/master/CMS-logo-small.png">
+    <span class="gray branding-text">&nbsp; TSG Tools v2.0</span>
+  </div>
+  <div class="left">
+    <span class="branding-text"><a id="l1menu-download" href="about:blank" target="_blank" download="l1prescales.txt">Download</a></span>
+  </div>
 </div>
+
 
 <script>
 function updateL1Text() {
@@ -54,7 +63,12 @@ function updateL1Text() {
     .doUpdateL1Text();
 }
 
-function onSuccessUpdateL1Text(text) {
+function onSuccessUpdateL1Text(parameters) {
+  var [text, url] = parameters;
+  
+  var link = document.getElementById("l1menu-download");
+  link.href = url;
+  
   var textarea = document.getElementById("l1menu-textarea");
   textarea.style.backgroundImage = "none";
   textarea.style.backgroundColor = "#FFFFFF";
@@ -63,6 +77,9 @@ function onSuccessUpdateL1Text(text) {
 }
 
 function onFailureUpdateL1Text(error) {
+  var link = document.getElementById("l1menu-textarea");
+  link.href = 'about:blank';
+  
   var textarea = document.getElementById("l1menu-textarea");
   textarea.style.backgroundImage = "none";
   textarea.style.backgroundColor = "#FFC0C0";
