@@ -40,10 +40,10 @@
   <div class="right">
     <img alt="CERN logo" class="logo" width="30" height="30" src="https://raw.githubusercontent.com/cms-tsg-storm/googledocs/master/CERN-logo-small.png">
     <img alt="CMS logo"  class="logo" width="30" height="30" src="https://raw.githubusercontent.com/cms-tsg-storm/googledocs/master/CMS-logo-small.png">
-    <span class="gray branding-text">&nbsp; TSG Tools v2.0</span>
+    <span class="gray branding-text">&nbsp; TSG Tools v2.0.1</span>
   </div>
   <div class="left">
-    <span class="branding-text"><a id="l1menu-download" href="about:blank" target="_blank" download="l1prescales.txt">Download</a></span>
+    <span class="branding-text"><a id="l1menu-download" href="about:blank" target="_blank" download="l1prescales.txt" type="text/plain">Download</a></span>
   </div>
 </div>
 
@@ -63,12 +63,13 @@ function updateL1Text() {
     .doUpdateL1Text();
 }
 
-function onSuccessUpdateL1Text(parameters) {
-  var [text, url] = parameters;
-  
+function onSuccessUpdateL1Text(text) {
   var link = document.getElementById("l1menu-download");
-  link.href = url;
-  
+  // create target file on Google Drive
+//link.href = DriveApp.createFile('l1prescales.txt', data).getDownloadUrl().replace('&gd=true', '');
+  // create target file on the fly with HTML 5
+  link.href = URL.createObjectURL(new Blob([text]));
+
   var textarea = document.getElementById("l1menu-textarea");
   textarea.style.backgroundImage = "none";
   textarea.style.backgroundColor = "#FFFFFF";
@@ -77,9 +78,9 @@ function onSuccessUpdateL1Text(parameters) {
 }
 
 function onFailureUpdateL1Text(error) {
-  var link = document.getElementById("l1menu-textarea");
+  var link = document.getElementById("l1menu-download");
   link.href = 'about:blank';
-  
+
   var textarea = document.getElementById("l1menu-textarea");
   textarea.style.backgroundImage = "none";
   textarea.style.backgroundColor = "#FFC0C0";

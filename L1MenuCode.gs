@@ -37,7 +37,7 @@ function findRowForEntry(data, entry) {
   for (var i = 0; i < data.length; i++)
     if (data[i][0].toString().match(entry))
       return data[i];
-  
+
   return null;
 }
 
@@ -77,21 +77,21 @@ function getL1Title() {
   return title;
 }
 
-function getL1OnlinePrescalesData() {
+function doUpdateL1Text() {
   var sheet = SpreadsheetApp.getActiveSheet();
   var data  = sheet.getDataRange().getValues();
   var text  = l1textComment;
-  
+
   // find the DESCRIPTION field, if present
   var descriptionRow = findRowForEntry(data, /^DESCRIPTION=/);
-  if (descriptionRow) 
+  if (descriptionRow)
     text += descriptionRow[0].toString() + '\n';
-  
+
   // find the LUMINOSITY_NOMINAL_HZ_CM2 field, if present
   var luminosityRow = findRowForEntry(data, /^LUMINOSITY_NOMINAL_HZ_CM2=/);
-  if (luminosityRow) 
+  if (luminosityRow)
     text += luminosityRow[0].toString() + '\n';
-  
+
   // add an empty line
   text += '\n';
 
@@ -124,7 +124,7 @@ function getL1OnlinePrescalesData() {
       }
     }
   }
-  
+
   // find the TARGET_LUMI_LEVEL for the prescale columns
   var targetlumiRow = findRowForEntry(data, /^TARGET_LUMI_LEVEL/);
   var targetlumiColumns = 0;
@@ -138,9 +138,9 @@ function getL1OnlinePrescalesData() {
         break;
       }
   }
-  
+
   // TODO: add checks for consistency among the number of columns
-  
+
   var columns = Math.max(prescaleColumns, targetlumiColumns);
   if (commentRow) {
     text += Utilities.formatString('%-60s', '**');
@@ -167,7 +167,7 @@ function getL1OnlinePrescalesData() {
     if (bitRow) {
       // comvert empty trigger names to a single dash
       if (bitRow[1] == '')
-        text += Utilities.formatString('%-6s%-54s', bit, '-');        
+        text += Utilities.formatString('%-6s%-54s', bit, '-');
       else
         text += Utilities.formatString('%-6s%-54s', bit, bitRow[1]);
       var j = 0;
@@ -179,7 +179,7 @@ function getL1OnlinePrescalesData() {
       while (j < columns) {
         text += Utilities.formatString('%10s', '1');
         j++;
-      }        
+      }
     } else {
       // fill in missing bits
       text += Utilities.formatString('%-6s%-54s', bit, '-');
@@ -187,11 +187,11 @@ function getL1OnlinePrescalesData() {
       while (j < columns) {
         text += Utilities.formatString('%10s', '1');
         j++;
-      }        
+      }
     }
     text += '\n';
   }
-  
+
   // add an empty line
   text += '\n';
 
@@ -200,28 +200,33 @@ function getL1OnlinePrescalesData() {
     var bit = 't' + i;
     var bitRow = findRowForEntry(data, bit);
     if (bitRow) {
-      text += Utilities.formatString('%-6s%-54s', bit, bitRow[1]);
+      // comvert empty trigger names to a single dash
+      if (bitRow[1] == '')
+        text += Utilities.formatString('%-6s%-54s', bit, '-');
+      else
+        text += Utilities.formatString('%-6s%-54s', bit, bitRow[1]);
       var j = 0;
       while (j < Math.min(columns, bitRow.length - 2)) {
-        text += Utilities.formatString('%10s', bitRow[j+2].toString());
+        // convert values to strings and remove whitespace
+        text += Utilities.formatString('%10s', bitRow[j+2].toString().replace(/\s/g, ''));
         j++;
       }
       while (j < columns) {
         text += Utilities.formatString('%10s', '1');
         Logger.log(j + '\t' + '1');
         j++;
-      }        
+      }
     } else {
       text += Utilities.formatString('%-6s%-54s', bit, '-');
       var j = 0;
       while (j < columns) {
         text += Utilities.formatString('%10s', '1');
         j++;
-      }        
+      }
     }
     text += '\n';
   }
-  
+
   return text;
 }
 
@@ -230,10 +235,4 @@ function getL1OnlinePrescalesURL(data) {
   var file = DriveApp.createFile('l1_prescales.txt', data);
   var url  = file.getDownloadUrl().replace('&gd=true', '');
   return url;
-}
-
-function doUpdateL1Text() {
-  var data = getL1OnlinePrescalesData();
-  var url  = getL1OnlinePrescalesURL(data);
-  return [data, url];
 }
