@@ -8,22 +8,29 @@
 function onOpen(e) {
   /* use this instead if published as an add-on
   SpreadsheetApp.getUi().createAddonMenu()
-      .addItem('Show L1 Menu Sidebar', 'showL1MenuSidebar')
+      .addItem('Show L1 Prescales for Online', 'showL1OnlinePrescales')
       .addToUi();
    */
   SpreadsheetApp.getUi().createMenu('TSG Tools')
-      .addItem('Show L1 Menu Sidebar', 'showL1MenuSidebar')
+      .addItem('Show L1 Prescales for Online', 'showL1OnlinePrescales')
       .addToUi();
 }
 
 /**
  * Opens a sidebar in the document containing the add-on's user interface.
  */
-function showL1MenuSidebar() {
+function showL1OnlinePrescales() {
+  /*
   var sidebar = HtmlService.createHtmlOutputFromFile('L1MenuSidebar')
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setTitle('L1 Menu');
   SpreadsheetApp.getUi().showSidebar(sidebar);
+  */
+  var html = HtmlService.createHtmlOutputFromFile('L1MenuOnline')
+      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
+      .setWidth(800)
+      .setHeight(600);
+  SpreadsheetApp.getUi().showModalDialog(html, getL1Title());
 }
 
 
@@ -39,6 +46,21 @@ function findRowForEntry(data, entry) {
       return data[i];
   
   return null;
+}
+
+function getL1Title() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var data  = sheet.getDataRange().getValues();
+  var title = 'L1 menu';
+
+  // find the DESCRIPTION field, if present
+  var descriptionRow = findRowForEntry(data, /^DESCRIPTION=/);
+  if (descriptionRow) {
+    var desc = descriptionRow[0].toString().split('=');
+    if (desc.length > 1)
+      title = desc[1];
+  }
+  return title;
 }
 
 function doUpdateL1Text() {
