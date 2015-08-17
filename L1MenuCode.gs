@@ -1,4 +1,8 @@
 /**
+ * @OnlyCurrentDoc
+ */
+
+/**
  * Creates a menu entry in the Google Docs UI when the document is opened.
  *
  * @param {object} e The event parameter for a simple onOpen trigger. To
@@ -6,11 +10,7 @@
  *     running in, inspect e.authMode.
  */
 function onOpen(e) {
-  /* use this instead if published as an add-on
-  SpreadsheetApp.getUi().createAddonMenu()
-      .addItem('Show L1 Prescales for Online', 'showL1OnlinePrescales')
-      .addToUi();
-   */
+  // if published as an add-on use createAddonMenu() instead of createMenu('TSG Tools')
   SpreadsheetApp.getUi().createMenu('TSG Tools')
       .addItem('Show L1 Prescales for Online', 'showL1OnlinePrescales')
       .addToUi();
@@ -20,12 +20,6 @@ function onOpen(e) {
  * Opens a sidebar in the document containing the add-on's user interface.
  */
 function showL1OnlinePrescales() {
-  /*
-  var sidebar = HtmlService.createHtmlOutputFromFile('L1MenuSidebar')
-      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
-      .setTitle('L1 Menu');
-  SpreadsheetApp.getUi().showSidebar(sidebar);
-  */
   var html = HtmlService.createHtmlOutputFromFile('L1MenuOnline')
       .setSandboxMode(HtmlService.SandboxMode.IFRAME)
       .setWidth(800)
@@ -44,7 +38,7 @@ function findRowForEntry(data, entry) {
   for (var i = 0; i < data.length; i++)
     if (data[i][0].toString().match(entry))
       return data[i];
-  
+
   return null;
 }
 
@@ -63,21 +57,25 @@ function getL1Title() {
   return title;
 }
 
+function cleanupValue(value) {
+  return value.toString().replace(/\s/g, '');
+}
+
 function doUpdateL1Text() {
   var sheet = SpreadsheetApp.getActiveSheet();
   var data  = sheet.getDataRange().getValues();
   var text  = l1textComment;
-  
+
   // find the DESCRIPTION field, if present
   var descriptionRow = findRowForEntry(data, /^DESCRIPTION=/);
-  if (descriptionRow) 
+  if (descriptionRow)
     text += descriptionRow[0].toString() + '\n';
-  
+
   // find the LUMINOSITY_NOMINAL_HZ_CM2 field, if present
   var luminosityRow = findRowForEntry(data, /^LUMINOSITY_NOMINAL_HZ_CM2=/);
-  if (luminosityRow) 
+  if (luminosityRow)
     text += luminosityRow[0].toString() + '\n';
-  
+
   // add an empty line
   text += '\n';
 
@@ -110,7 +108,7 @@ function doUpdateL1Text() {
       }
     }
   }
-  
+
   // find the TARGET_LUMI_LEVEL for the prescale columns
   var targetlumiRow = findRowForEntry(data, /^TARGET_LUMI_LEVEL/);
   var targetlumiColumns = 0;
@@ -124,9 +122,9 @@ function doUpdateL1Text() {
         break;
       }
   }
-  
+
   // TODO: add checks for consistency among the number of columns
-  
+
   var columns = Math.max(prescaleColumns, targetlumiColumns);
   if (commentRow) {
     text += Utilities.formatString('%-60s', '**');
@@ -151,28 +149,33 @@ function doUpdateL1Text() {
     var bit = 'a' + i;
     var bitRow = findRowForEntry(data, bit);
     if (bitRow) {
-      text += Utilities.formatString('%-6s%-54s', bit, bitRow[1]);
+      // comvert empty trigger names to a single dash
+      if (bitRow[1] == '')
+        text += Utilities.formatString('%-6s%-54s', bit, '-');
+      else
+        text += Utilities.formatString('%-6s%-54s', bit, bitRow[1]);
       var j = 0;
       while (j < Math.min(columns, bitRow.length - 2)) {
-        text += Utilities.formatString('%10s', bitRow[j+2].toString());
+        // convert values to strings and remove whitespace
+        text += Utilities.formatString('%10s', cleanupValue(bitRow[j+2]));
         j++;
       }
       while (j < columns) {
         text += Utilities.formatString('%10s', '1');
-        Logger.log(j + '\t' + '1');
         j++;
-      }        
+      }
     } else {
+      // fill in missing bits
       text += Utilities.formatString('%-6s%-54s', bit, '-');
       var j = 0;
       while (j < columns) {
         text += Utilities.formatString('%10s', '1');
         j++;
-      }        
+      }
     }
     text += '\n';
   }
-  
+
   // add an empty line
   text += '\n';
 
@@ -191,18 +194,18 @@ function doUpdateL1Text() {
         text += Utilities.formatString('%10s', '1');
         Logger.log(j + '\t' + '1');
         j++;
-      }        
+      }
     } else {
       text += Utilities.formatString('%-6s%-54s', bit, '-');
       var j = 0;
       while (j < columns) {
         text += Utilities.formatString('%10s', '1');
         j++;
-      }        
+      }
     }
     text += '\n';
   }
-  
+
   return text;
 }
 
